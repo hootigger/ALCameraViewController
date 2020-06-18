@@ -361,7 +361,7 @@ extension ConfirmViewController: UIScrollViewDelegate {
 
 extension ConfirmViewController: CropOverlayDelegate {
 
-    public func didMoveCropOverlay(newFrame: CGRect, isResize: Bool) {
+    public func didMoveCropOverlay(newFrame: CGRect, status: CropOverlay.Status) {
         cropOverlayLeftConstraint.constant = newFrame.origin.x
         cropOverlayTopConstraint.constant = newFrame.origin.y
         cropOverlayWidthConstraint.constant = newFrame.size.width
