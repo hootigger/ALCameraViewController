@@ -56,7 +56,7 @@ public class CropOverlay: UIView {
         setup()
     }
 
-    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let view = super.hitTest(point, with: event)
 
         if !isMovable && isResizable {
