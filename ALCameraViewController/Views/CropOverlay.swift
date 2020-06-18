@@ -34,12 +34,12 @@ public class CropOverlay: UIView {
         return cornerButtonWidth * self.outterGapRatio
     }
 
-    var isResizable: Bool = false
-    var isMovable: Bool = false
-    var minimumSize: CGSize = CGSize.zero
-    weak var delegate: CropOverlayDelegate?
+    public var isResizable: Bool = false
+    public var isMovable: Bool = false
+    public var minimumSize: CGSize = CGSize.zero
+    public weak var delegate: CropOverlayDelegate?
 
-    var croppedRect: CGRect {
+    public var croppedRect: CGRect {
         return CGRect(x: frame.origin.x + outterGap,
                       y: frame.origin.y + outterGap,
                       width: frame.size.width - 2 * outterGap,
