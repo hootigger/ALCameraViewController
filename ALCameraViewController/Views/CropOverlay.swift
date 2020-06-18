@@ -9,7 +9,7 @@
 import UIKit
 
 public protocol CropOverlayDelegate: class {
-    func didMoveCropOverlay(newFrame: CGRect)
+    func didMoveCropOverlay(newFrame: CGRect,isResize: Bool)
 }
 
 public class CropOverlay: UIView {
@@ -266,7 +266,7 @@ public class CropOverlay: UIView {
 
                 gestureRecognizer.setTranslation(CGPoint.zero, in: self)
                 
-                delegate?.didMoveCropOverlay(newFrame: minimumFrame)
+                delegate?.didMoveCropOverlay(newFrame: minimumFrame,isResize: true)
             }
         } else if isMovable {
             if gestureRecognizer.state == .began || gestureRecognizer.state == .changed {
@@ -279,7 +279,7 @@ public class CropOverlay: UIView {
 
                 gestureRecognizer.setTranslation(CGPoint.zero, in: self)
 
-                delegate?.didMoveCropOverlay(newFrame: newFrame)
+                delegate?.didMoveCropOverlay(newFrame: newFrame,isResize: false)
             }
         }
     }
