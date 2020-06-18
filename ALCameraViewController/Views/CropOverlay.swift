@@ -9,11 +9,16 @@
 import UIKit
 
 public protocol CropOverlayDelegate: class {
-    func didMoveCropOverlay(newFrame: CGRect,isResize: Bool)
+    func didMoveCropOverlay(newFrame: CGRect,status: CropOverlay.Status)
 }
 
 public class CropOverlay: UIView {
 
+    public enum Status {
+        case reszieTopLeft, reszieTopRight, reszieBottomLeft, reszieBottomRight
+        case moving
+    }
+    
     private let buttons = [UIButton(),  // top left
                            UIButton(),  // top right
                            UIButton(),  // bottom left
@@ -38,7 +43,10 @@ public class CropOverlay: UIView {
     public var isMovable: Bool = false
     public var minimumSize: CGSize = CGSize.zero
     public weak var delegate: CropOverlayDelegate?
-
+    
+    /// 边界Rect
+    public var edgeRect: CGRect = UIScreen.main.bounds
+    
     public var croppedRect: CGRect {
         return CGRect(x: frame.origin.x + outterGap,
                       y: frame.origin.y + outterGap,
@@ -207,15 +215,25 @@ public class CropOverlay: UIView {
                                              height: minimumSize.height + 2 * outterGap)
 
                 var newFrame: CGRect
-
+                var status = Status.reszieTopLeft
+                
                 switch button {
                 case buttons[0]:    // Top Left
                     let hasEnoughWidth = frame.size.width - translation.x >= realMinimumSize.width
                     let hasEnoughHeight = frame.size.height - translation.y >= realMinimumSize.height
 
-                    let xPossibleTranslation = hasEnoughWidth ? translation.x : 0
-                    let yPossibleTranslation = hasEnoughHeight ? translation.y : 0
+                    var xPossibleTranslation = hasEnoughWidth ? translation.x : 0
+                    var yPossibleTranslation = hasEnoughHeight ? translation.y : 0
 
+                    /// 边界检测
+                    if frame.minX + translation.x <= edgeRect.minX - outterGap {
+                        xPossibleTranslation = edgeRect.minX - outterGap - frame.minX
+                    }
+                    
+                    if frame.minY + translation.y <= edgeRect.minY - outterGap {
+                        yPossibleTranslation = edgeRect.minY - outterGap - frame.minY
+                    }
+                    status = .reszieTopLeft
                     newFrame = CGRect(x: frame.origin.x + xPossibleTranslation,
                                       y: frame.origin.y + yPossibleTranslation,
                                       width: frame.size.width - xPossibleTranslation,
@@ -224,9 +242,18 @@ public class CropOverlay: UIView {
                     let hasEnoughWidth = frame.size.width + translation.x >= realMinimumSize.width
                     let hasEnoughHeight = frame.size.height - translation.y >= realMinimumSize.height
 
-                    let xPossibleTranslation = hasEnoughWidth ? translation.x : 0
-                    let yPossibleTranslation = hasEnoughHeight ? translation.y : 0
+                    var xPossibleTranslation = hasEnoughWidth ? translation.x : 0
+                    var yPossibleTranslation = hasEnoughHeight ? translation.y : 0
 
+                    /// 边界检测
+                    if frame.maxX + translation.x >= edgeRect.maxX + outterGap {
+                        xPossibleTranslation = edgeRect.maxX + outterGap - frame.maxX
+                    }
+                    
+                    if frame.minY + translation.y <= edgeRect.minY - outterGap {
+                        yPossibleTranslation = edgeRect.minY - outterGap - frame.minY
+                    }
+                    status = .reszieTopRight
                     newFrame = CGRect(x: frame.origin.x,
                                       y: frame.origin.y + yPossibleTranslation,
                                       width: frame.size.width + xPossibleTranslation,
@@ -235,9 +262,19 @@ public class CropOverlay: UIView {
                     let hasEnoughWidth = frame.size.width - translation.x >= realMinimumSize.width
                     let hasEnoughHeight = frame.size.height + translation.y >= realMinimumSize.height
 
-                    let xPossibleTranslation = hasEnoughWidth ? translation.x : 0
-                    let yPossibleTranslation = hasEnoughHeight ? translation.y : 0
-
+                    var xPossibleTranslation = hasEnoughWidth ? translation.x : 0
+                    var yPossibleTranslation = hasEnoughHeight ? translation.y : 0
+                    
+                    /// 边界检测
+                    if frame.minX + translation.x <= edgeRect.minX - outterGap {
+                        xPossibleTranslation = edgeRect.minX - outterGap - frame.minX
+                    }
+                    
+                    if frame.maxY + translation.y >= edgeRect.maxY + outterGap {
+                        yPossibleTranslation = edgeRect.maxY + outterGap - frame.maxY
+                    }
+                    
+                    status = .reszieBottomLeft
                     newFrame = CGRect(x: frame.origin.x + xPossibleTranslation,
                                       y: frame.origin.y,
                                       width: frame.size.width - xPossibleTranslation,
@@ -246,9 +283,19 @@ public class CropOverlay: UIView {
                     let hasEnoughWidth = frame.size.width + translation.x >= realMinimumSize.width
                     let hasEnoughHeight = frame.size.height + translation.y >= realMinimumSize.height
 
-                    let xPossibleTranslation = hasEnoughWidth ? translation.x : 0
-                    let yPossibleTranslation = hasEnoughHeight ? translation.y : 0
-
+                    var xPossibleTranslation = hasEnoughWidth ? translation.x : 0
+                    var yPossibleTranslation = hasEnoughHeight ? translation.y : 0
+                    
+                    /// 边界检测
+                    if frame.maxX + translation.x >= edgeRect.maxX + outterGap {
+                        xPossibleTranslation = edgeRect.maxX + outterGap - frame.maxX
+                    }
+                    
+                    if frame.maxY + translation.y >= edgeRect.maxY + outterGap{
+                        yPossibleTranslation = edgeRect.maxY + outterGap - frame.maxY
+                    }
+                    
+                    status = .reszieBottomRight
                     newFrame = CGRect(x: frame.origin.x,
                                       y: frame.origin.y,
                                       width: frame.size.width + xPossibleTranslation,
@@ -266,20 +313,24 @@ public class CropOverlay: UIView {
 
                 gestureRecognizer.setTranslation(CGPoint.zero, in: self)
                 
-                delegate?.didMoveCropOverlay(newFrame: minimumFrame,isResize: true)
+                delegate?.didMoveCropOverlay(newFrame: minimumFrame,status: status)
             }
         } else if isMovable {
             if gestureRecognizer.state == .began || gestureRecognizer.state == .changed {
                 let translation = gestureRecognizer.translation(in: self)
-
-                let newFrame = CGRect(x: frame.origin.x + translation.x,
+                
+                var newFrame = CGRect(x: frame.origin.x + translation.x,
                                       y: frame.origin.y + translation.y,
                                       width: frame.size.width,
                                       height: frame.size.height)
 
+                newFrame = CGRect(x: max(edgeRect.minX - outterGap, newFrame.minX) - max(newFrame.maxX - edgeRect.maxX - outterGap, 0),
+                                  y: max(edgeRect.minY - outterGap, newFrame.minY) - max(newFrame.maxY - edgeRect.maxY - outterGap, 0),
+                                  width: newFrame.width,
+                                  height: newFrame.height)
                 gestureRecognizer.setTranslation(CGPoint.zero, in: self)
 
-                delegate?.didMoveCropOverlay(newFrame: newFrame,isResize: false)
+                delegate?.didMoveCropOverlay(newFrame: newFrame,status: .moving)
             }
         }
     }
