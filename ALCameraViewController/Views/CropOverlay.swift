@@ -8,11 +8,11 @@
 
 import UIKit
 
-protocol CropOverlayDelegate: class {
+public protocol CropOverlayDelegate: class {
     func didMoveCropOverlay(newFrame: CGRect)
 }
 
-internal class CropOverlay: UIView {
+public class CropOverlay: UIView {
 
     private let buttons = [UIButton(),  // top left
                            UIButton(),  // top right
@@ -46,12 +46,12 @@ internal class CropOverlay: UIView {
                       height: frame.size.height - 2 * outterGap)
     }
 
-    internal override init(frame: CGRect) {
+    public override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
     }
 
-    internal required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         setup()
     }
